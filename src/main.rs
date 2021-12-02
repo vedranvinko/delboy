@@ -2,12 +2,9 @@ use cursive::event::Key;
 use cursive::traits::*;
 use cursive::views::{Dialog, EditView, LinearLayout, TextView};
 use cursive::Cursive;
-use cursive_async_view::{AsyncState, AsyncView};
 
 use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::{Deserialize, Serialize};
-
-use std::time::{Duration, Instant};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct User {
@@ -63,13 +60,15 @@ async fn get_user_info(name: &str) -> Result<User, reqwest::Error> {
 fn show_info(root: &mut Cursive, name: &str) {
     root.pop_layer();
 
-    let text = format!("User {}", name);
+    let user = get_user_info(name).unwrap();
+    let username = format!("Username: {}", user.login.unwrap_or(String::from("foo")));
+    let pr = format!("Public repos: {}", user.public_repos.unwrap_or(0));
 
     root.add_layer(
         Dialog::around(
             LinearLayout::vertical()
-                .child(TextView::new("Name: "))
-                .child(TextView::new("Public repos: ")),
+                .child(TextView::new(username))
+                .child(TextView::new(pr)),
         )
         .button("OK", |s| s.quit()),
     );
